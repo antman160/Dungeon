@@ -62,12 +62,7 @@ public class PlayerController : MonoBehaviour
         SetAnimations();
         HandleWalkSound();
 
-        // Test TakeDamage on Spacebar
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            TakeDamage(5);
-            Debug.Log("Health: " + currentHealth);
-        }
+      
     }
 
     public void TakeDamage(int amount)
@@ -76,7 +71,7 @@ public class PlayerController : MonoBehaviour
 
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-        //audioSource.PlayOneShot(hurtSound);
+        audioSource.PlayOneShot(hurtSound);
 
         if (currentHealth <= 0)
         {
@@ -196,6 +191,8 @@ public class PlayerController : MonoBehaviour
     public GameObject SpellBall;
     public AudioClip swordSwing;
     public AudioClip hitSound;
+    public AudioClip hurtSound;
+    public AudioClip spellSound;
 
     bool attacking = false;
     bool readyToAttack = true;
@@ -245,6 +242,9 @@ public class PlayerController : MonoBehaviour
 
         Invoke(nameof(ResetCast), castSpeed);
         Invoke(nameof(CastRaycast), castDelay);
+
+        audioSource.pitch = Random.Range(0.9f, 1.1f);
+        audioSource.PlayOneShot(spellSound);
 
         ChangeAnimationState(SPELL);
     }

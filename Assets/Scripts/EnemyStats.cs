@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyStats : MonoBehaviour
 {
@@ -11,16 +12,25 @@ public class EnemyStats : MonoBehaviour
     public delegate void EnemyDeath(GameObject enemy);
     public event EnemyDeath OnDeath;
 
+    private Animator animator;
+    private NavMeshAgent agent;
+    private Rigidbody rb;
+
+    private static readonly string DEATH_ANIMATION = "death";  // Animation trigger name
+    private float deathAnimationDuration = 2.9f;  // Duration of the death animation
+
     void Awake()
     {
         currentHealth = maxHealth;
+        animator = GetComponentInChildren<Animator>();
+        agent = GetComponent<NavMeshAgent>();
+        rb = GetComponent<Rigidbody>();
     }
 
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
 
-        // Log when the enemy is hit
         Debug.Log($"{gameObject.name} hit! Current Health: {currentHealth}/{maxHealth}");
 
         if (currentHealth <= 0)
@@ -32,8 +42,37 @@ public class EnemyStats : MonoBehaviour
     private void Die()
     {
         Debug.Log("Enemy has died.");
-        OnDeath?.Invoke(gameObject); // Notify other systems of death
-        Destroy(gameObject);
+
+        // Play death animation
+        if (animator != null)
+        {
+            animator.CrossFadeInFixedTime(DEATH_ANIMATION, 0.2f);
+        }
+
+        // Stop motion
+        StopMotion();
+
+        OnDeath?.Invoke(gameObject);  // Notify other systems of death
+
+        // Start coroutine to wait and destroy
+        StartCoroutine(WaitAndDestroy());
+    }
+
+    private void StopMotion()
+    {
+        if (agent != null)
+        {
+            agent.isStopped = true;        // Stop pathfinding
+            agent.enabled = false;         // Disable NavMeshAgent
+        }
+
+       
+    }
+
+    private System.Collections.IEnumerator WaitAndDestroy()
+    {
+        yield return new WaitForSeconds(deathAnimationDuration);  // Wait for animation to complete
+        Destroy(gameObject);  // Destroy the enemy
     }
 
     public int GetCurrentHealth()
@@ -41,3 +80,5 @@ public class EnemyStats : MonoBehaviour
         return currentHealth;
     }
 }
+
+

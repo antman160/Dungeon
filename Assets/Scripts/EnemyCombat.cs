@@ -1,15 +1,18 @@
 using UnityEngine;
+using System;
 
 public class EnemyCombat : MonoBehaviour
 {
     public int damage = 10;
     public float attackRange = 2f;
-    public float attackCooldown = 1.5f;
+    public float attackCooldown = 4.18f;
 
     private float lastAttackTime;
     private Transform player;
     private PlayerController playerController;
-    private EnemyNavigation enemyNavigation;
+
+    // Event triggered when the enemy attacks
+    public event Action OnAttack;
 
     void Start()
     {
@@ -18,21 +21,16 @@ public class EnemyCombat : MonoBehaviour
         {
             player = playerObject.transform;
             playerController = playerObject.GetComponent<PlayerController>();
-        }
 
-        enemyNavigation = GetComponent<EnemyNavigation>();
-        if (enemyNavigation == null)
-        {
-            Debug.LogWarning("EnemyNavigation component not found!");
         }
     }
 
     void Update()
     {
-        if (player != null && enemyNavigation != null && enemyNavigation.PlayerInSight())
+
+        if (player != null && Vector3.Distance(transform.position, player.position) <= attackRange)
         {
-            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-            if (distanceToPlayer <= attackRange && Time.time - lastAttackTime >= attackCooldown)
+            if (Time.time - lastAttackTime >= attackCooldown)
             {
                 Attack();
                 lastAttackTime = Time.time;
@@ -45,7 +43,8 @@ public class EnemyCombat : MonoBehaviour
         if (playerController != null)
         {
             Debug.Log("Enemy attacks the player!");
-            //playerController.TakeDamage(damage);
+            playerController.TakeDamage(damage);
+            OnAttack?.Invoke();
         }
         else
         {
@@ -53,4 +52,5 @@ public class EnemyCombat : MonoBehaviour
         }
     }
 }
+
 

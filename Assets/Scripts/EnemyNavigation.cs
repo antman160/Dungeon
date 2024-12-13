@@ -4,10 +4,12 @@ using UnityEditor;  // Required for Handles
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements.Experimental;
 
 public class EnemyNavigation : MonoBehaviour
 {
     private EnemyStats stats;
+    private EnemyCombat combat;
     private Vector3 _enemyVelocity;
     private bool isGrounded;
 
@@ -24,6 +26,7 @@ public class EnemyNavigation : MonoBehaviour
 
     private NavMeshAgent agent;
     private Transform player;
+    Animator animator;
 
     private List<GameObject> blips;
     private HashSet<GameObject> checkedBlips = new HashSet<GameObject>();
@@ -40,8 +43,11 @@ public class EnemyNavigation : MonoBehaviour
     void Start()
     {
         stats = GetComponent<EnemyStats>();
+        combat = GetComponent<EnemyCombat>();
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>();
         agent.speed = stats.speed;
+        combat.OnAttack += HandleAttack;
 
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
         spawnPosition = transform.position;
@@ -73,6 +79,7 @@ public class EnemyNavigation : MonoBehaviour
                 HandleSearching();
                 break;
         }
+        SetAnimations();
     }
 
     private void ApplyGravity()
@@ -262,6 +269,47 @@ public class EnemyNavigation : MonoBehaviour
         }
 
         return false;
+    }
+
+    // ANIMATION
+    public const string IDLE = "zombieIdle";
+    public const string WALK = "walking";
+    public const string ATTACK = "zombieAttack";
+    public const string DEATH = "death";
+    public const string HIT = "zombieHit";
+
+    string currentAnimationState;
+
+    public void ChangeAnimationState(string newState)
+    {
+        if (currentAnimationState == newState) return;
+        currentAnimationState = newState;
+        animator.CrossFadeInFixedTime(currentAnimationState, 0.2f);
+    }
+    void HandleAttack()
+    {
+        ChangeAnimationState(ATTACK);
+    }
+    void SetAnimations()
+    {
+        // Only change to movement animations if not attacking
+        if (currentAnimationState != ATTACK)
+        {
+            if (agent.velocity.magnitude == 0)
+            {
+                ChangeAnimationState(IDLE);
+            }
+            else
+            {
+                ChangeAnimationState(WALK);
+            }
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Unsubscribe from the event to avoid memory leaks
+        combat.OnAttack -= HandleAttack;
     }
 
     // DEBUG VISUALIZATION

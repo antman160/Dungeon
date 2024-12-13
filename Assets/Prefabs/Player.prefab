@@ -134,6 +134,8 @@ MonoBehaviour:
   moveSpeed: 5
   gravity: -9.8
   jumpHeight: 1.2
+  maxHealth: 100
+  currentHealth: 0
   cam: {fileID: 1788623315372294392}
   sensitivity: 15
   walkSound: {fileID: 8300000, guid: 8a67a1fe011c5874e9cfa008a3c06158, type: 3}
@@ -148,6 +150,8 @@ MonoBehaviour:
   SpellBall: {fileID: 6403961856740388273, guid: ac1330ca5f1905649b02d0f3b9de9ddd, type: 3}
   swordSwing: {fileID: 8300000, guid: 7923190c5e80b4d4d9396acc5d0b48cf, type: 3}
   hitSound: {fileID: 8300000, guid: 11245d3945c564b45a1bafad5ecb70e5, type: 3}
+  hurtSound: {fileID: 8300000, guid: fc26d94bed361a545988e4127774b7b4, type: 3}
+  spellSound: {fileID: 8300000, guid: 876a6e8eca9f01242bf76fc0cda7bd58, type: 3}
   castDistance: 20
   castDelay: 1
   castSpeed: 1
