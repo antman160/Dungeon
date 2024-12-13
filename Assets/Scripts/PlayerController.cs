@@ -7,15 +7,18 @@ public class PlayerController : MonoBehaviour
 {
     PlayerInput playerInput;
     PlayerInput.MainActions input;
-
     CharacterController controller;
     Animator animator;
     AudioSource audioSource;
+    
 
     [Header("Controller")]
     public float moveSpeed = 5;
     public float gravity = -9.8f;
     public float jumpHeight = 1.2f;
+    public int maxHealth = 100;
+    public int currentHealth;
+
 
     Vector3 _PlayerVelocity;
     bool isGrounded;
@@ -28,6 +31,11 @@ public class PlayerController : MonoBehaviour
     [Header("Audio")]
     public AudioClip walkSound;
     bool isWalking = false;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+    }
 
     void Awake()
     {
@@ -48,20 +56,44 @@ public class PlayerController : MonoBehaviour
         isGrounded = controller.isGrounded;
 
         // Repeat Inputs
-        if (input.Attack.IsPressed())
-        { Attack(); }
-        if (input.Cast.IsPressed())
-        { Cast(); }
+        if (input.Attack.IsPressed()) { Attack(); }
+        if (input.Cast.IsPressed()) { Cast(); }
 
         SetAnimations();
         HandleWalkSound();
+
+        // Test TakeDamage on Spacebar
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            TakeDamage(5);
+            Debug.Log("Health: " + currentHealth);
+        }
     }
 
-    void FixedUpdate()
-    { MoveInput(input.Movement.ReadValue<Vector2>()); }
+    public void TakeDamage(int amount)
+    {
+        if (currentHealth <= 0) return;
 
-    void LateUpdate()
-    { LookInput(input.Look.ReadValue<Vector2>()); }
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        //audioSource.PlayOneShot(hurtSound);
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+    void Die()
+    {
+        // audioSource.PlayOneShot(deathSound);
+        // ChangeAnimationState("Death");
+        // Disable player controls or trigger game over logic
+        Debug.Log($"You are dead");
+        enabled = false;
+    }
+
+    void FixedUpdate() { MoveInput(input.Movement.ReadValue<Vector2>()); }
+    void LateUpdate() { LookInput(input.Look.ReadValue<Vector2>()); }
 
     // Player Movement
     void MoveInput(Vector2 input)
@@ -69,12 +101,14 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDirection = new Vector3(input.x, 0, input.y);
         controller.Move(transform.TransformDirection(moveDirection) * moveSpeed * Time.deltaTime);
         _PlayerVelocity.y += gravity * Time.deltaTime;
+
         if (isGrounded && _PlayerVelocity.y < 0)
             _PlayerVelocity.y = -2f;
+
         controller.Move(_PlayerVelocity * Time.deltaTime);
     }
 
-    // Player Look 
+    // Player Look
     void LookInput(Vector3 input)
     {
         float mouseX = input.x;
@@ -87,13 +121,10 @@ public class PlayerController : MonoBehaviour
         transform.Rotate(Vector3.up * (mouseX * Time.deltaTime * sensitivity));
     }
 
-    void OnEnable()
-    { input.Enable(); }
+    void OnEnable() { input.Enable(); }
+    void OnDisable() { input.Disable(); }
 
-    void OnDisable()
-    { input.Disable(); }
-
-    // Jump action
+    // Jump Action
     void Jump()
     {
         if (isGrounded)
@@ -107,7 +138,6 @@ public class PlayerController : MonoBehaviour
         input.Cast.started += ctx => Cast();
     }
 
-   
     // ANIMATION
     public const string IDLE = "Idle";
     public const string WALK = "Walk";
@@ -138,7 +168,6 @@ public class PlayerController : MonoBehaviour
     void HandleWalkSound()
     {
         bool isMoving = input.Movement.ReadValue<Vector2>().magnitude > 0;
-        Debug.Log("Is Moving: " + isMoving);
 
         if (isMoving && isGrounded && !isWalking)
         {
@@ -155,7 +184,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-   
     // ATTACK
     [Header("Attacking")]
     public float attackDistance = 3f;
@@ -170,9 +198,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip hitSound;
 
     bool attacking = false;
-    
     bool readyToAttack = true;
-    
     int attackCount;
 
     public void Attack()
@@ -222,12 +248,13 @@ public class PlayerController : MonoBehaviour
 
         ChangeAnimationState(SPELL);
     }
-    
+
     void ResetCast()
     {
         Casting = false;
         readyToCast = true;
     }
+
     void ResetAttack()
     {
         attacking = false;
@@ -240,8 +267,10 @@ public class PlayerController : MonoBehaviour
         {
             HitTarget(hit.point);
 
-            if (hit.transform.TryGetComponent<Actor>(out Actor T))
-            { T.TakeDamage(attackDamage); }
+            if (hit.transform.TryGetComponent<EnemyStats>(out EnemyStats target))
+            {
+                target.TakeDamage(attackDamage);
+            }
         }
     }
 
@@ -251,19 +280,19 @@ public class PlayerController : MonoBehaviour
         {
             SpellHit(hit.point);
 
-            if (hit.transform.TryGetComponent<Actor>(out Actor T))
-            { T.TakeDamage(attackDamage); }
+            if (hit.transform.TryGetComponent<EnemyStats>(out EnemyStats target))
+            {
+                target.TakeDamage(castDamage);
+            }
         }
     }
 
     void SpellHit(Vector3 pos)
     {
-        //audioSource.pitch = 1;
-        //audioSource.PlayOneShot(spellHitSound);
-
         GameObject GO = Instantiate(SpellBall, pos, Quaternion.identity);
         Destroy(GO, 20);
     }
+
     void HitTarget(Vector3 pos)
     {
         audioSource.pitch = 1;

@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - spawnPoint
+  - Hit
+  - Blip
   layers:
   - Default
   - TransparentFX
