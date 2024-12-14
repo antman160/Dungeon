@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -85,6 +86,8 @@ public class PlayerController : MonoBehaviour
         // Disable player controls or trigger game over logic
         Debug.Log($"You are dead");
         enabled = false;
+
+        SceneManager.LoadScene(2);
     }
 
     void FixedUpdate() { MoveInput(input.Movement.ReadValue<Vector2>()); }

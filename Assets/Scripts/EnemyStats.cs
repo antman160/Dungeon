@@ -14,7 +14,7 @@ public class EnemyStats : MonoBehaviour
 
     private Animator animator;
     private NavMeshAgent agent;
-    private Rigidbody rb;
+    
 
     private static readonly string DEATH_ANIMATION = "death";  // Animation trigger name
     private float deathAnimationDuration = 2.9f;  // Duration of the death animation
@@ -24,7 +24,7 @@ public class EnemyStats : MonoBehaviour
         currentHealth = maxHealth;
         animator = GetComponentInChildren<Animator>();
         agent = GetComponent<NavMeshAgent>();
-        rb = GetComponent<Rigidbody>();
+       
     }
 
     public void TakeDamage(int amount)
@@ -62,8 +62,8 @@ public class EnemyStats : MonoBehaviour
     {
         if (agent != null)
         {
-            agent.isStopped = true;        // Stop pathfinding
-            agent.enabled = false;         // Disable NavMeshAgent
+            agent.isStopped = true;        
+            //agent.enabled = false;         
         }
 
        
@@ -71,8 +71,9 @@ public class EnemyStats : MonoBehaviour
 
     private System.Collections.IEnumerator WaitAndDestroy()
     {
-        yield return new WaitForSeconds(deathAnimationDuration);  // Wait for animation to complete
-        Destroy(gameObject);  // Destroy the enemy
+        // Wait for animation to complete
+        yield return new WaitForSeconds(deathAnimationDuration); 
+        Destroy(gameObject); 
     }
 
     public int GetCurrentHealth()
